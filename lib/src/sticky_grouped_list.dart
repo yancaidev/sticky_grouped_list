@@ -137,6 +137,9 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   /// should be placed.
   final double initialAlignment;
 
+  /// Set a top element index changed callback.
+  final void Function(E currentHeader)? onCurrentHeaderChanged;
+
   /// Creates a [StickyGroupedListView].
   const StickyGroupedListView({
     super.key,
@@ -166,6 +169,7 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
     this.initialAlignment = 0,
     this.initialScrollIndex = 0,
     this.shrinkWrap = false,
+    this.onCurrentHeaderChanged,
   }) : assert(itemBuilder != null || indexedItemBuilder != null);
 
   @override
@@ -188,6 +192,7 @@ class StickyGroupedListViewState<T, E>
   late GroupedItemScrollController _controller;
   GlobalKey? _groupHeaderKey;
   final GlobalKey _key = GlobalKey();
+
   int _topElementIndex = 0;
   RenderBox? _headerBox;
   RenderBox? _listBox;
@@ -315,13 +320,16 @@ class StickyGroupedListViewState<T, E>
             position.itemTrailingEdge > headerDimension!)
         .reduce(reducePositions);
 
-    int index = currentItem.index ~/ 2;
+    int index = currentItem.index ~/ 2;    
     if (_topElementIndex != index) {
       E curr = widget.groupBy(sortedElements[index]);
       E prev = widget.groupBy(sortedElements[_topElementIndex]);
-      if (prev != curr) {
+      if (prev != curr) {    
         _topElementIndex = index;
         _streamController.add(_topElementIndex);
+        if (widget.onCurrentHeaderChanged != null) {
+          widget.onCurrentHeaderChanged!(curr);
+        }
       }
     }
   }
